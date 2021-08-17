@@ -24,4 +24,13 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
+    res.send(dbFile.accounts);
+  } catch (error) {
+    res.send({ error }, 400);
+  }
+});
+
 export default router;

@@ -13,7 +13,6 @@ app.use("/accounts", accountsRouter);
 app.listen(3000, async () => {
   try {
     await readFile(config.get("accounts.file"));
-    s;
   } catch (error) {
     const initialJson = {
       nextId: 1,
