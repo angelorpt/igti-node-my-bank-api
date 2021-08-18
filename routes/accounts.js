@@ -68,6 +68,39 @@ router.post("/", async (req, res) => {
   }
 });
 
+// PUT
+router.put("/:id", async (req, res) => {
+  try {
+    // URL Params
+    const pId = parseInt(req.params.id);
+
+    // Body Params
+    const pAccount = req.body;
+
+    // Read DBFile
+    let dbFile = JSON.parse(await readFile(config.get("accounts.file")));
+
+    // Check Exists
+    let account = dbFile.accounts.find((account) => account.id === pId);
+    if (!account) {
+      res.send({ message: "Recurso não encontrado" }, 404);
+    }
+
+    // Update Resource
+    const index = dbFile.accounts.findIndex((account) => account.id === pId);
+    dbFile.accounts[index] = { id: account.id, ...pAccount };
+
+    // Save DBFile
+    await writeFile(config.get("accounts.file"), JSON.stringify(dbFile));
+
+    // API Response
+    account = dbFile.accounts.find((account) => account.id === pId);
+    res.send(account, 200);
+  } catch (error) {
+    res.status(400).send({ error });
+  }
+});
+
 // DELETE ID
 router.delete("/:id", async (req, res) => {
   try {
