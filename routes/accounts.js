@@ -8,7 +8,10 @@ const router = express.Router();
 // GET
 router.get("/", async (req, res) => {
   try {
+    // Read DBFile
     const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
+
+    // API Response
     res.send(dbFile.accounts);
   } catch (error) {
     res.send({ error }, 400);
@@ -18,12 +21,21 @@ router.get("/", async (req, res) => {
 // GET ID
 router.get("/:id", async (req, res) => {
   try {
-    const ID = parseInt(req.params.id);
+    // Params
+    const id = parseInt(req.params.id);
+
+    // Read DBFile
     const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
-    const account = dbFile.accounts.find((account) => account.id === ID);
+
+    // Find Resource
+    const account = dbFile.accounts.find((account) => account.id === id);
+
+    // IF Not Exists
     if (!account) {
       res.send({ message: "Não encontrado" }, 404);
     }
+
+    // API Response
     res.send(account);
   } catch (error) {
     res.send({ error }, 400);
@@ -33,16 +45,23 @@ router.get("/:id", async (req, res) => {
 // POST
 router.post("/", async (req, res) => {
   try {
-    let account = req.body;
-    const dbFile = await readFile(config.get("accounts.file"));
-    const data = JSON.parse(dbFile);
+    // Body Params
+    const pAccount = req.body;
 
+    // Read DBFile
+    const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
+
+    // New Account
     account = { id: data.nextId, ...account };
+
+    // Update Object DBFile
     data.nextId++;
     data.accounts.push(account);
 
+    // Save DBFile
     await writeFile(config.get("accounts.file"), JSON.stringify(data));
 
+    // API Response
     res.send(account, 201);
   } catch (error) {
     res.status(400).send({ error });
@@ -55,7 +74,7 @@ router.delete("/:id", async (req, res) => {
     // Params
     const id = parseInt(req.params.id);
 
-    // DBFile
+    // Read DBFile
     const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
 
     // Check exists
