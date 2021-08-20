@@ -6,7 +6,7 @@ const { readFile, writeFile } = fs;
 const router = express.Router();
 
 // GET
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   try {
     // Read DBFile
     const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
@@ -14,12 +14,12 @@ router.get("/", async (req, res) => {
     // API Response
     res.send(dbFile.accounts);
   } catch (error) {
-    res.send({ error }, 400);
+    next(err);
   }
 });
 
 // GET ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
   try {
     // Params
     const id = parseInt(req.params.id);
@@ -38,12 +38,12 @@ router.get("/:id", async (req, res) => {
     // API Response
     res.send(account);
   } catch (error) {
-    res.send({ error }, 400);
+    next(err);
   }
 });
 
 // POST
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     // Body Params
     const pAccount = req.body;
@@ -64,12 +64,12 @@ router.post("/", async (req, res) => {
     // API Response
     res.send(account, 201);
   } catch (error) {
-    res.status(400).send({ error });
+    next(err);
   }
 });
 
 // PUT
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req, res, next) => {
   try {
     // URL Params
     const pId = parseInt(req.params.id);
@@ -97,12 +97,12 @@ router.put("/:id", async (req, res) => {
     account = dbFile.accounts.find((account) => account.id === pId);
     res.send(account, 200);
   } catch (error) {
-    res.status(400).send({ error });
+    next(err);
   }
 });
 
 // PATCH
-router.patch("/:id/balance", async (req, res) => {
+router.patch("/:id/balance", async (req, res, next) => {
   try {
     // URL Params
     const pId = parseInt(req.params.id);
@@ -130,12 +130,12 @@ router.patch("/:id/balance", async (req, res) => {
     account = dbFile.accounts.find((account) => account.id === pId);
     res.send(account, 200);
   } catch (error) {
-    res.status(400).send({ error });
+    next(err);
   }
 });
 
 // DELETE ID
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req, res, next) => {
   try {
     // Params
     const id = parseInt(req.params.id);
@@ -161,8 +161,13 @@ router.delete("/:id", async (req, res) => {
     // Retorno API
     res.send({ message: "Recurso deletado" });
   } catch (error) {
-    res.send({ error }, 400);
+    next(err);
   }
+});
+
+router.use((err, req, res, next) => {
+  console.log(err);
+  res.status(400).send({ error: err.message });
 });
 
 export default router;
