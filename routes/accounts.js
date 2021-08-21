@@ -12,7 +12,7 @@ router.get("/", async (req, res, next) => {
     const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
 
     // API Response
-    res.send(dbFile.accounts);
+    res.status(200).send(dbFile.accounts);
     logger.info("GET /accounts");
   } catch (error) {
     next(error);
@@ -33,11 +33,11 @@ router.get("/:id", async (req, res, next) => {
 
     // IF Not Exists
     if (!account) {
-      res.send({ message: "Não encontrado" }, 404);
+      res.status(404).send({ message: "Não encontrado" });
     }
 
     // API Response
-    res.send(account);
+    res.status(200).send(account);
 
     // Log
     logger.info("GET /accounts/:id");
@@ -52,12 +52,21 @@ router.post("/", async (req, res, next) => {
     // Body Params
     const pAccount = req.body;
 
+    // Validando Fields do Body
+    if (!pAccount.name || pAccount.balance == null) {
+      throw new Error("Name e Balance são obrigatórios");
+    }
+
     // Read DBFile
     const dbFile = await readFile(config.get("accounts.file"));
     let data = JSON.parse(dbFile);
 
     // New Account
-    let account = { id: data.nextId, ...pAccount };
+    let account = {
+      id: data.nextId,
+      name: pAccount.name,
+      balance: pAccount.balance,
+    };
 
     // Update Object DBFile
     data.nextId++;
@@ -67,7 +76,7 @@ router.post("/", async (req, res, next) => {
     await writeFile(config.get("accounts.file"), JSON.stringify(data));
 
     // API Response
-    res.send(account, 201);
+    res.status(201).send(account);
 
     logger.info(`POST /account ${JSON.stringify(account)}`);
   } catch (error) {
@@ -84,25 +93,33 @@ router.put("/:id", async (req, res, next) => {
     // Body Params
     const pAccount = req.body;
 
+    // Validando Fields do Body
+    if (!pAccount.name || pAccount.balance == null) {
+      throw new Error("Name e Balance são obrigatórios");
+    }
+
     // Read DBFile
     let dbFile = JSON.parse(await readFile(config.get("accounts.file")));
 
     // Check Exists
-    let account = dbFile.accounts.find((account) => account.id === pId);
-    if (!account) {
-      res.send({ message: "Recurso não encontrado" }, 404);
+    const index = dbFile.accounts.findIndex((account) => account.id === pId);
+    if (index === -1) {
+      res.status(404).send({ message: "Recurso não encontrado" });
     }
 
     // Update Resource
-    const index = dbFile.accounts.findIndex((account) => account.id === pId);
-    dbFile.accounts[index] = { id: account.id, ...pAccount };
+    dbFile.accounts[index] = {
+      id: account.id,
+      name: pAccount.name,
+      balance: pAccount.balance,
+    };
 
     // Save DBFile
     await writeFile(config.get("accounts.file"), JSON.stringify(dbFile));
 
     // API Response
-    account = dbFile.accounts.find((account) => account.id === pId);
-    res.send(account, 200);
+    const account = dbFile.accounts.find((account) => account.id === pId);
+    res.status(200).send(account);
 
     logger.info(`PUT /accounts/:id - ${JSON.stringify(account)}`);
   } catch (error) {
@@ -119,13 +136,18 @@ router.patch("/:id/balance", async (req, res, next) => {
     // Body Params
     const pAccount = req.body;
 
+    // Validando Fields do Body
+    if (pAccount.balance == null) {
+      throw new Error("Balance é obrigatório");
+    }
+
     // Read DBFile
     let dbFile = JSON.parse(await readFile(config.get("accounts.file")));
 
     // Check Exists
     let account = dbFile.accounts.find((account) => account.id === pId);
     if (!account) {
-      res.send({ message: "Recurso não encontrado" }, 404);
+      res.status(404).send({ message: "Recurso não encontrado" });
     }
 
     // Update Resource
@@ -137,7 +159,7 @@ router.patch("/:id/balance", async (req, res, next) => {
 
     // API Response
     account = dbFile.accounts.find((account) => account.id === pId);
-    res.send(account, 200);
+    res.status(200).send(account);
 
     logger.info(
       "PUT /accounts/:id/balance",
@@ -160,7 +182,7 @@ router.delete("/:id", async (req, res, next) => {
     // Check exists
     const account = dbFile.accounts.find((account) => account.id === id);
     if (!account) {
-      res.send({ message: "Recurso não encontrado" }, 404);
+      res.status(404).send({ message: "Recurso não encontrado" });
     }
 
     // Removendo Recurso
@@ -173,7 +195,7 @@ router.delete("/:id", async (req, res, next) => {
     await writeFile(config.get("accounts.file"), JSON.stringify(data));
 
     // Retorno API
-    res.send({ message: "Recurso deletado" });
+    res.status(200).send({ message: "Recurso deletado" });
 
     // Log
     logger.info(`DELETE /accounts/${id}`);
