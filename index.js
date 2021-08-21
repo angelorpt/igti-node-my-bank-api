@@ -2,6 +2,7 @@ import express from "express";
 import accountsRouter from "./routes/accounts.js";
 import config from "config";
 import winston from "winston";
+import cors from "cors";
 import { promises as fs } from "fs";
 
 const { readFile, writeFile } = fs;
@@ -21,7 +22,7 @@ global.logger = winston.createLogger({
 
 const app = express();
 app.use(express.json());
-
+app.use(cors());
 app.use("/accounts", accountsRouter);
 
 app.listen(3000, async () => {

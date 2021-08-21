@@ -6,6 +6,7 @@ const { readFile, writeFile } = fs;
 const router = express.Router();
 
 // GET
+// router.get("/", cors(), async (req, res, next) => {
 router.get("/", async (req, res, next) => {
   try {
     // Read DBFile
