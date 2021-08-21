@@ -13,8 +13,9 @@ router.get("/", async (req, res, next) => {
 
     // API Response
     res.send(dbFile.accounts);
+    logger.info("GET /accounts");
   } catch (error) {
-    next(err);
+    next(error);
   }
 });
 
@@ -37,8 +38,11 @@ router.get("/:id", async (req, res, next) => {
 
     // API Response
     res.send(account);
+
+    // Log
+    logger.info("GET /accounts/:id");
   } catch (error) {
-    next(err);
+    next(error);
   }
 });
 
@@ -49,10 +53,11 @@ router.post("/", async (req, res, next) => {
     const pAccount = req.body;
 
     // Read DBFile
-    const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
+    const dbFile = await readFile(config.get("accounts.file"));
+    let data = JSON.parse(dbFile);
 
     // New Account
-    account = { id: data.nextId, ...account };
+    let account = { id: data.nextId, ...pAccount };
 
     // Update Object DBFile
     data.nextId++;
@@ -63,8 +68,10 @@ router.post("/", async (req, res, next) => {
 
     // API Response
     res.send(account, 201);
+
+    logger.info(`POST /account ${JSON.stringify(account)}`);
   } catch (error) {
-    next(err);
+    next(error);
   }
 });
 
@@ -96,8 +103,10 @@ router.put("/:id", async (req, res, next) => {
     // API Response
     account = dbFile.accounts.find((account) => account.id === pId);
     res.send(account, 200);
+
+    logger.info(`PUT /accounts/:id - ${JSON.stringify(account)}`);
   } catch (error) {
-    next(err);
+    next(error);
   }
 });
 
@@ -129,8 +138,13 @@ router.patch("/:id/balance", async (req, res, next) => {
     // API Response
     account = dbFile.accounts.find((account) => account.id === pId);
     res.send(account, 200);
+
+    logger.info(
+      "PUT /accounts/:id/balance",
+      `old: ${account.balance} | new: ${pAccount.balance}`
+    );
   } catch (error) {
-    next(err);
+    next(error);
   }
 });
 
@@ -160,13 +174,16 @@ router.delete("/:id", async (req, res, next) => {
 
     // Retorno API
     res.send({ message: "Recurso deletado" });
+
+    // Log
+    logger.info(`DELETE /accounts/${id}`);
   } catch (error) {
-    next(err);
+    next(error);
   }
 });
 
 router.use((err, req, res, next) => {
-  console.log(err);
+  logger.error(`${req.method} ${req.baseUrl} - ${err.message}`);
   res.status(400).send({ error: err.message });
 });
 
