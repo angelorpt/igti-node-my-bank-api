@@ -79,8 +79,12 @@ const updateAccount = async (req, res, next) => {
     }
 
     // Service
-    const account = AccountService.updateAccount();
+    const account = await AccountService.updateAccount(pId, pAccount);
+    if (!account) {
+      res.status(404).send({ message: "Recurso não encontrado" });
+    }
 
+    // API Response
     res.status(200).send(account);
 
     logger.info(`PUT /accounts/:id - ${JSON.stringify(account)}`);
@@ -103,26 +107,16 @@ const updateBalance = async (req, res, next) => {
       throw new Error("Balance é obrigatório");
     }
 
-    // Read DBFile
-    let dbFile = JSON.parse(await readFile(config.get("accounts.file")));
-
-    // Check Exists
-    let account = dbFile.accounts.find((account) => account.id === pId);
+    // Service
+    const account = await AccountService.updateBalance(pId, pAccount);
     if (!account) {
       res.status(404).send({ message: "Recurso não encontrado" });
     }
 
-    // Update Resource
-    const index = dbFile.accounts.findIndex((account) => account.id === pId);
-    dbFile.accounts[index].balance = pAccount.balance;
-
-    // Save DBFile
-    await writeFile(config.get("accounts.file"), JSON.stringify(dbFile));
-
     // API Response
-    account = dbFile.accounts.find((account) => account.id === pId);
     res.status(200).send(account);
 
+    // Log
     logger.info(
       "PUT /accounts/:id/balance",
       `old: ${account.balance} | new: ${pAccount.balance}`
@@ -138,24 +132,12 @@ const deleteAccount = async (req, res, next) => {
     // Params
     const id = parseInt(req.params.id);
 
-    // Read DBFile
-    const dbFile = JSON.parse(await readFile(config.get("accounts.file")));
+    // Service
+    const account = await AccountService.deleteAccount(id);
 
-    // Check exists
-    const account = dbFile.accounts.find((account) => account.id === id);
     if (!account) {
       res.status(404).send({ message: "Recurso não encontrado" });
     }
-
-    // Removendo Recurso
-    const data = {
-      nextId: dbFile.nextId,
-
-      accounts: dbFile.accounts.filter((acc) => acc.id != id),
-    };
-
-    // Salvando os dados
-    await writeFile(config.get("accounts.file"), JSON.stringify(data));
 
     // Retorno API
     res.status(200).send({ message: "Recurso deletado" });

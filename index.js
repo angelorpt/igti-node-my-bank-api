@@ -1,5 +1,5 @@
 import express from "express";
-import accountsRouter from "./routes/accounts.js";
+import accountsRouter from "./routes/account.routes.js";
 import config from "config";
 import winston from "winston";
 import cors from "cors";
