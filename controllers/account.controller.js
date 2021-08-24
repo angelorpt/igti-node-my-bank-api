@@ -1,8 +1,4 @@
-import { promises as fs } from "fs";
-import config from "config";
 import AccountService from "../services/account.service.js";
-
-const { readFile, writeFile } = fs;
 
 // GET ALL
 const getAccounts = async (req, res, next) => {
